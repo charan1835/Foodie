@@ -1,21 +1,30 @@
 // app/layout.js
+"use client";
+
 import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "./_components/Header";
+import { usePathname } from "next/navigation";
 import { Toaster } from "react-hot-toast";
-import CartProvider from "./_context/CartProvider"; // ✅ Use clean context provider
-import ClientWrapper from "./_components/ClientWrapper";
+import CategoryList from "./_components/CategoryList";
+import BusinessList from "./_components/BusinessList";
+import { CartupdateContext } from "./_context/CartupdateContext";
+import { useState } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }) {
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
+  const [updateCart, setUpdateCart] = useState(false);
+
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body className={inter.className}>
-          <CartProvider>
-            {/* Background Video */}
+      <CartupdateContext.Provider value={{ updateCart, setUpdateCart }}>
+        <html lang="en">
+          <body className={inter.className}>
+            {/* Background */}
             <video
               autoPlay
               loop
@@ -24,15 +33,21 @@ export default function RootLayout({ children }) {
               src="/videos/chiken-grill.mp4"
             />
             <div className="fixed inset-0 bg-black/40 z-0" />
-
             <Header />
             <main className="relative z-10 pt-20 text-white">
-              <ClientWrapper>{children}</ClientWrapper>
+              {isHomePage ? (
+                <>
+                  <CategoryList />
+                  <BusinessList />
+                </>
+              ) : (
+                children
+              )}
             </main>
             <Toaster />
-          </CartProvider>
-        </body>
-      </html>
+          </body>
+        </html>
+      </CartupdateContext.Provider>
     </ClerkProvider>
   );
 }

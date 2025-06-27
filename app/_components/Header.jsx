@@ -4,7 +4,7 @@ import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs"
 import { useContext, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Search, Home } from "lucide-react"
-import { CartupdateContext } from "../_context/CartProvider"
+import { CartupdateContext } from "../_context/CartupdateContext"
 import GlobelApi from "../_utils/GlobelApi"
 
 const Header = () => {
