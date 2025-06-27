@@ -7,7 +7,6 @@ import { Loader2, Plus, Clock, MapPin, Star, Heart, Share2 } from "lucide-react"
 import { useUser } from "@clerk/nextjs"
 import { toast } from "react-hot-toast"
 import { useRouter } from "next/navigation"
-import { CartupdateContext } from "../../../_context/CartupdateContext"
 
 function RestaurantDetails({ params }) {
   const { name: slug } = use(params)
