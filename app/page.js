@@ -1,5 +1,5 @@
 // app/layout.js
-"use client";
+
 import { ClerkProvider, UserButton } from "@clerk/nextjs";
 import "./globals.css";
 import CategoryList from "./_components/CategoryList";
