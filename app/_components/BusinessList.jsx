@@ -1,5 +1,5 @@
 "use client";
-
+import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import GlobalApi from "../_utils/GlobelApi";
@@ -7,11 +7,13 @@ import Businessitem from "./Businessitem";
 import Loadingpage from "./Loadingpage";
 import { motion } from "framer-motion";
 
-function BusinessList() {
+// Separate the component that uses useSearchParams
+function BusinessListContent() {
   const [businessList, setBusinessList] = useState([]);
   const params = useSearchParams();
   const selectedCategory = params.get("category");
   const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     if (selectedCategory) {
       setLoading(true);
@@ -67,6 +69,15 @@ function BusinessList() {
         </motion.div>
       )}
     </div>
+  );
+}
+
+// Main component with Suspense wrapper
+function BusinessList() {
+  return (
+    <Suspense fallback={<Loadingpage />}>
+      <BusinessListContent />
+    </Suspense>
   );
 }
 
