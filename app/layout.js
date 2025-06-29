@@ -8,7 +8,7 @@ import Header from "./_components/Header";
 import { Toaster } from "react-hot-toast";
 import { CartupdateContext } from "./_context/CartupdateContext";
 import { useState } from "react";
-
+import { SpeedInsights } from "@vercel/speed-insights/next"
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }) {
