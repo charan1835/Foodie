@@ -1,4 +1,3 @@
-// app/page.js
 "use client";
 
 import { Suspense } from "react";
@@ -25,7 +24,9 @@ function BusinessListSkeleton() {
 export default function HomePage() {
   return (
     <>
-      <CategoryList />
+      <Suspense fallback={<div>Loading categories...</div>}>
+        <CategoryList />
+      </Suspense>
       <Suspense fallback={<BusinessListSkeleton />}>
         <BusinessList />
       </Suspense>
