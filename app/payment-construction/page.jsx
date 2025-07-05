@@ -78,25 +78,92 @@ export default function PaymentConstructionPage() {
         try {
           const { latitude, longitude } = position.coords;
           
-          // Option 1: Use OpenCage API (replace YOUR_API_KEY with actual key)
-          // const response = await fetch(
-          //   `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=YOUR_API_KEY`
-          // );
+          // Try multiple geocoding services with fallbacks
+          let addressFound = false;
           
-          // Option 2: Simple fallback - just use coordinates
-          const address = `📍 Current Location\nLat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}\n\n(You can edit this and add your full address above)`;
-          setDeliveryAddress(address);
-          toast.success("Location coordinates captured! Please add your full address details.");
+          // Method 1: OpenCage API (Replace YOUR_API_KEY with your actual key)
+          try {
+            const openCageResponse = await fetch(
+              `https://api.opencagedata.com/geocode/v1/json?q=${latitude},${longitude}&key=3124ddf5e3c34be69c1924db299ba631&language=en&pretty=1`
+            );
+            
+            if (openCageResponse.ok) {
+              const openCageData = await openCageResponse.json();
+              if (openCageData.results && openCageData.results.length > 0) {
+                const result = openCageData.results[0];
+                const address = result.formatted;
+                setDeliveryAddress(address);
+                toast.success("📍 Location detected successfully!");
+                addressFound = true;
+              }
+            }
+          } catch (openCageError) {
+            console.log("OpenCage API failed:", openCageError);
+          }
           
-          // Option 3: Use Google Maps link for reference
-          // const googleMapsLink = `https://maps.google.com/?q=${latitude},${longitude}`;
-          // const address = `📍 Current Location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}\nGoogle Maps: ${googleMapsLink}`;
-          // setDeliveryAddress(address);
+          // Method 2: BigDataCloud (Free, no API key needed)
+          if (!addressFound) {
+            try {
+              const bigDataResponse = await fetch(
+                `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+              );
+              
+              if (bigDataResponse.ok) {
+                const bigDataData = await bigDataResponse.json();
+                if (bigDataData.locality || bigDataData.city) {
+                  const address = [
+                    bigDataData.locality || bigDataData.city,
+                    bigDataData.principalSubdivision,
+                    bigDataData.countryName
+                  ].filter(Boolean).join(", ");
+                  
+                  setDeliveryAddress(address);
+                  toast.success("📍 Location detected successfully!");
+                  addressFound = true;
+                }
+              }
+            } catch (bigDataError) {
+              console.log("BigDataCloud API failed:", bigDataError);
+            }
+          }
+          
+          // Method 3: Nominatim (OpenStreetMap) - Free
+          if (!addressFound) {
+            try {
+              const nominatimResponse = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+                {
+                  headers: {
+                    'User-Agent': 'FoodieApp/1.0 (your-email@example.com)'
+                  }
+                }
+              );
+              
+              if (nominatimResponse.ok) {
+                const nominatimData = await nominatimResponse.json();
+                if (nominatimData.display_name) {
+                  setDeliveryAddress(nominatimData.display_name);
+                  toast.success("📍 Location detected successfully!");
+                  addressFound = true;
+                }
+              }
+            } catch (nominatimError) {
+              console.log("Nominatim API failed:", nominatimError);
+            }
+          }
+          
+          // Fallback: Use coordinates if all APIs fail
+          if (!addressFound) {
+            const address = `📍 Current Location\nLat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}\n\n(Please add your complete address details above)`;
+            setDeliveryAddress(address);
+            toast.success("📍 Location coordinates captured! Please add your full address details.");
+          }
           
         } catch (error) {
-          const address = `📍 Location: ${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
+          console.error("Geocoding error:", error);
+          const address = `📍 Location: ${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}\n\n(Please add your complete address details above)`;
           setDeliveryAddress(address);
-          toast.success("Location coordinates captured!");
+          toast.success("📍 Location coordinates captured! Please add your full address details.");
         } finally {
           setLocationLoading(false);
         }
@@ -120,8 +187,8 @@ export default function PaymentConstructionPage() {
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
+        timeout: 15000,
+        maximumAge: 60000,
       }
     );
   };
@@ -205,9 +272,9 @@ export default function PaymentConstructionPage() {
 
     const message =
       `*🛒 COD Order Summary*\n\n` +
-      `👤 *Customer:* ${customerName || user?.fullName || "Guest"}\n\n` +
-      `📧 *Email:* ${user?.primaryEmailAddress?.emailAddress || "Not Provided"} \n\n` +
-      `📱 *Phone:* ${customerPhone || user?.phoneNumbers?.[0]?.phoneNumber || "Not Provided"}\n\n` +
+      `👤 *Customer:* ${customerName || user?.fullName || "Guest"}\n` +
+      `📧 *Email:* ${user?.primaryEmailAddress?.emailAddress || "Not Provided"}\n` +
+      `📱 *Phone:* ${customerPhone || user?.phoneNumbers?.[0]?.phoneNumber || "Not Provided"}\n` +
       `📦 *Total Items:* ${itemCount}\n\n` +
       `*🧾 Order Details:*\n${itemLines}\n\n` +
       `💵 *Subtotal:* ₹${subtotal.toFixed(2)}\n` +
@@ -294,7 +361,7 @@ export default function PaymentConstructionPage() {
               type="text"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg p-3 text-sm text-gray-900 bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder-gray-500"
               placeholder="Enter your full name"
             />
           </div>
@@ -309,7 +376,7 @@ export default function PaymentConstructionPage() {
               type="tel"
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg p-3 text-sm text-gray-900 bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder-gray-500"
               placeholder="Enter your phone number"
             />
           </div>
@@ -363,7 +430,7 @@ export default function PaymentConstructionPage() {
               rows={3}
               value={deliveryAddress}
               onChange={(e) => setDeliveryAddress(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg p-3 text-sm text-gray-900 bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder-gray-500"
               placeholder="House/Flat No, Street, Area, City, Pincode"
             />
           </div>
@@ -377,7 +444,7 @@ export default function PaymentConstructionPage() {
               type="text"
               value={landmark}
               onChange={(e) => setLandmark(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg p-3 text-sm text-gray-900 bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder-gray-500"
               placeholder="e.g., Near McDonald's, Behind City Mall"
             />
           </div>
