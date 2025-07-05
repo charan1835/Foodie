@@ -25,7 +25,9 @@ function WelcomeToast() {
 
       // Second toast: Romantic invite 💕
       setTimeout(() => {
-        toast(`Did you miss me babe? 🥺 Come, let’s have a dinner date ❤️`, {
+        toast(`Did you miss me babe? 🥺 Come, let’s have a dinner date ❤️`,
+          toast(`start a conversation with me or else oder something and njoy ur meal 🍔`),
+          { 
           duration: 4000,
         });
       }, 2000);
