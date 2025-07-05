@@ -154,7 +154,7 @@ export default function DisplayCart() {
               <h2 className="text-2xl font-bold text-gray-900 mb-3">Your cart is empty</h2>
               <p className="text-gray-600 mb-6">Looks like you haven't added any delicious items to your cart yet.</p>
               <button onClick={() => router.push("/")} className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-semibold transition-colors">
-                Start Shopping
+                Start Odering
               </button>
             </div>
           </div>
