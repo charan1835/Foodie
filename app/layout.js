@@ -1,29 +1,52 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ClerkProvider } from "@clerk/nextjs";
+import { ClerkProvider, useUser } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "./_components/Header";
 import { Toaster, toast } from "react-hot-toast";
 import { CartupdateContext } from "./_context/CartupdateContext";
+import { useEffect, useState } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default function RootLayout({ children }) {
-  const [updateCart, setUpdateCart] = useState(false);
+function WelcomeToast() {
+  const { user, isSignedIn } = useUser();
 
   useEffect(() => {
-    toast("💬 Got a query? Reach us anytime on WhatsApp!");
-  }, []);
+    if (isSignedIn && user) {
+      const username = user.firstName || "babe";
+
+      // First toast: Welcome
+      toast.success(`👋 Welcome ${username}!`, {
+        duration: 2000,
+      });
+
+      // Second toast: Romantic invite 💕
+      setTimeout(() => {
+        toast(`Did you miss me babe? 🥺 Come, let’s have a dinner date ❤️`, {
+          duration: 4000,
+        });
+      }, 2000);
+    }
+  }, [isSignedIn, user]);
+
+  return null;
+}
+
+export default function RootLayout({ children }) {
+  const [updateCart, setUpdateCart] = useState(false);
 
   return (
     <ClerkProvider>
       <CartupdateContext.Provider value={{ updateCart, setUpdateCart }}>
         <html lang="en">
           <body className={inter.className}>
-            {/* Background */}
+            {/* Toast Component for Welcome Msgs */}
+            <WelcomeToast />
+
+            {/* Background Video */}
             <video
               autoPlay
               loop
@@ -34,8 +57,11 @@ export default function RootLayout({ children }) {
               src="/videos/chiken-grill.mp4"
             />
             <div className="fixed inset-0 bg-black/40 z-0" />
+
             <Header />
             <main className="relative z-10 pt-20 text-white">{children}</main>
+
+            {/* Toaster UI */}
             <Toaster position="top-center" reverseOrder={false} />
 
             {/* WhatsApp Floating Button */}
@@ -45,7 +71,7 @@ export default function RootLayout({ children }) {
               rel="noopener noreferrer"
               className="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition duration-300"
             >
-              {/* ✅ Actual WhatsApp Logo */}
+              {/* WhatsApp Icon */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="w-6 h-6"
