@@ -1,112 +1,144 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useUser } from "@clerk/nextjs"
-import { useRouter } from "next/navigation"
-import { toast } from "react-hot-toast"
-import { 
-  CreditCard, 
-  Smartphone, 
-  Wallet, 
-  Banknote, 
-  ArrowLeft, 
-  Shield, 
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import {
+  CreditCard,
+  Smartphone,
+  Wallet,
+  Banknote,
+  ArrowLeft,
+  Shield,
   CheckCircle,
   Clock,
-  MapPin
-} from "lucide-react"
-import GlobalApi from "@/_utils/GlobelApi"
+  MapPin,
+} from "lucide-react";
+import GlobalApi from "@/_utils/GlobelApi";
 
 export default function PaymentConstructionPage() {
-  const { user } = useUser()
-  const router = useRouter()
-  const [orderData, setOrderData] = useState(null)
-  const [selectedPayment, setSelectedPayment] = useState("")
-  const [loading, setLoading] = useState(false)
+  const { user } = useUser();
+  const router = useRouter();
+  const [orderData, setOrderData] = useState(null);
+  const [selectedPayment, setSelectedPayment] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Get order data from sessionStorage
-    const storedOrderData = sessionStorage.getItem('orderData')
+    const storedOrderData = sessionStorage.getItem("orderData");
     if (storedOrderData) {
-      setOrderData(JSON.parse(storedOrderData))
+      setOrderData(JSON.parse(storedOrderData));
     } else {
-      // If no order data, redirect back to cart
-      router.push('/cart')
+      router.push("/cart");
     }
-  }, [router])
+  }, [router]);
 
   const paymentMethods = [
     {
-      id: 'card',
-      name: 'Credit/Debit Card',
+      id: "card",
+      name: "Credit/Debit Card",
       icon: CreditCard,
-      description: 'Visa, Mastercard, RuPay',
-      status: 'online'
+      description: "Visa, Mastercard, RuPay",
+      status: "online",
     },
     {
-      id: 'upi',
-      name: 'UPI Payment',
+      id: "upi",
+      name: "UPI Payment",
       icon: Smartphone,
-      description: 'PhonePe, Google Pay, Paytm',
-      status: 'online'
+      description: "PhonePe, Google Pay, Paytm",
+      status: "online",
     },
     {
-      id: 'wallet',
-      name: 'Digital Wallet',
+      id: "wallet",
+      name: "Digital Wallet",
       icon: Wallet,
-      description: 'Paytm, Amazon Pay, Mobikwik',
-      status: 'online'
+      description: "Paytm, Amazon Pay, Mobikwik",
+      status: "online",
     },
     {
-      id: 'cod',
-      name: 'Cash on Delivery',
+      id: "cod",
+      name: "Cash on Delivery",
       icon: Banknote,
-      description: 'Pay when your order arrives',
-      status: 'available'
-    }
-  ]
+      description: "Pay when your order arrives",
+      status: "available",
+    },
+  ];
+
+  const generateWhatsAppMessage = () => {
+    if (!orderData) return "";
+
+    const {
+      itemCount,
+      subtotal,
+      gstAmount,
+      deliveryCharge,
+      totalAmount,
+      appliedCoupon,
+      couponDiscount,
+      items,
+    } = orderData;
+
+    const itemLines = items
+      ?.map((item, index) => `${index + 1}. ${item.name} - ₹${item.price}`)
+      .join("%0A") || "No items listed";
+
+    const message =
+      `📦 *New COD Order!*%0A%0A` +
+      `👤 *User*: ${user?.primaryEmailAddress?.emailAddress || "Guest"}%0A` +
+      `🛍️ *Items (${itemCount}):*%0A${itemLines}%0A%0A` +
+      `💰 *Subtotal*: ₹${subtotal.toFixed(2)}%0A` +
+      `🧾 *GST (12%)*: ₹${gstAmount.toFixed(2)}%0A` +
+      `🚚 *Delivery Fee*: ₹${deliveryCharge.toFixed(2)}%0A` +
+      (appliedCoupon
+        ? `🏷️ *Coupon*: -₹${couponDiscount.toFixed(2)}%0A`
+        : "") +
+      `🔐 *Total*: ₹${totalAmount.toFixed(2)}%0A%0A` +
+      `✅ *Payment*: Cash on Delivery`;
+
+    return `https://wa.me/918688605760?text=${encodeURI(message)}`;
+  };
 
   const handlePaymentSelect = async (method) => {
-    setSelectedPayment(method.id)
-    setLoading(true)
+    setSelectedPayment(method.id);
+    setLoading(true);
 
     try {
-      if (method.status === 'online') {
-        // Show toast for online payment methods
-        toast.error(`${method.name} is currently unavailable. Please select Cash on Delivery.`)
-        setLoading(false)
-        setSelectedPayment("")
-        return
+      if (method.status === "online") {
+        toast.error(`${method.name} is currently unavailable.`);
+        setSelectedPayment("");
+        setLoading(false);
+        return;
       }
 
-      if (method.id === 'cod') {
-        // Handle Cash on Delivery
-        toast.success("Order placed successfully! 🎉")
-        
-        // Clear cart from Hygraph after successful COD selection
-        const userEmail = user.primaryEmailAddress.emailAddress
-        const cartRes = await GlobalApi.GetUserCart(userEmail)
-        const userCart = cartRes?.userCarts || []
-        
+      if (method.id === "cod") {
+        toast.success("Order placed successfully! 🎉");
+
+        // Clear cart from Hygraph
+        const userEmail = user.primaryEmailAddress.emailAddress;
+        const cartRes = await GlobalApi.GetUserCart(userEmail);
+        const userCart = cartRes?.userCarts || [];
+
         for (let item of userCart) {
-          await GlobalApi.deleteCartItem(item.id)
+          await GlobalApi.deleteCartItem(item.id);
         }
 
-        // Clear session storage
-        sessionStorage.removeItem('orderData')
-        
-        // Redirect to thank you page
+        // 🔥 Send order summary to WhatsApp
+        const waLink = generateWhatsAppMessage();
+        window.open(waLink, "_blank");
+
+        sessionStorage.removeItem("orderData");
+
         setTimeout(() => {
-          router.push("/payment-construction/thankyou")
-        }, 1500)
+          router.push("/payment-construction/thankyou");
+        }, 1500);
       }
     } catch (err) {
-      toast.error("Something went wrong!")
-      console.error("Payment error:", err)
+      toast.error("Something went wrong!");
+      console.error("Payment error:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (!orderData) {
     return (
@@ -118,7 +150,7 @@ export default function PaymentConstructionPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -126,7 +158,7 @@ export default function PaymentConstructionPage() {
       <div className="max-w-md mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <button 
+          <button
             onClick={() => router.back()}
             className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
           >
@@ -135,13 +167,13 @@ export default function PaymentConstructionPage() {
           <h1 className="text-2xl font-bold text-gray-900">Payment Options</h1>
         </div>
 
-        {/* Order Summary Card */}
+        {/* Order Summary */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <h2 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <CheckCircle size={18} className="text-green-500" />
             Order Summary
           </h2>
-          
+
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">Items ({orderData.itemCount})</span>
@@ -187,43 +219,47 @@ export default function PaymentConstructionPage() {
         {/* Payment Methods */}
         <div className="space-y-4">
           <h2 className="font-semibold text-gray-800 mb-4">Choose Payment Method</h2>
-          
+
           {paymentMethods.map((method) => {
-            const IconComponent = method.icon
-            const isDisabled = method.status === 'online'
-            const isSelected = selectedPayment === method.id
-            
+            const IconComponent = method.icon;
+            const isDisabled = method.status === "online";
+            const isSelected = selectedPayment === method.id;
+
             return (
               <button
                 key={method.id}
                 onClick={() => !loading && handlePaymentSelect(method)}
                 disabled={loading}
                 className={`w-full p-4 rounded-xl border-2 transition-all duration-200 text-left ${
-                  isSelected 
-                    ? 'border-orange-500 bg-orange-50' 
-                    : isDisabled 
-                      ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60' 
-                      : 'border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50'
+                  isSelected
+                    ? "border-orange-500 bg-orange-50"
+                    : isDisabled
+                    ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-60"
+                    : "border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50"
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-lg ${
-                    isSelected 
-                      ? 'bg-orange-100 text-orange-600' 
-                      : isDisabled 
-                        ? 'bg-gray-100 text-gray-400'
-                        : method.id === 'cod' 
-                          ? 'bg-green-100 text-green-600' 
-                          : 'bg-gray-100 text-gray-600'
-                  }`}>
+                  <div
+                    className={`p-3 rounded-lg ${
+                      isSelected
+                        ? "bg-orange-100 text-orange-600"
+                        : isDisabled
+                        ? "bg-gray-100 text-gray-400"
+                        : method.id === "cod"
+                        ? "bg-green-100 text-green-600"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
                     <IconComponent size={20} />
                   </div>
-                  
+
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className={`font-semibold ${
-                        isDisabled ? 'text-gray-400' : 'text-gray-900'
-                      }`}>
+                      <h3
+                        className={`font-semibold ${
+                          isDisabled ? "text-gray-400" : "text-gray-900"
+                        }`}
+                      >
                         {method.name}
                       </h3>
                       {isDisabled && (
@@ -231,15 +267,17 @@ export default function PaymentConstructionPage() {
                           Unavailable
                         </span>
                       )}
-                      {method.id === 'cod' && (
+                      {method.id === "cod" && (
                         <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
                           Available
                         </span>
                       )}
                     </div>
-                    <p className={`text-sm ${
-                      isDisabled ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
+                    <p
+                      className={`text-sm ${
+                        isDisabled ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
                       {method.description}
                     </p>
                   </div>
@@ -249,7 +287,7 @@ export default function PaymentConstructionPage() {
                   )}
                 </div>
               </button>
-            )
+            );
           })}
         </div>
 
@@ -266,12 +304,13 @@ export default function PaymentConstructionPage() {
             <div>
               <p className="font-medium text-amber-800 text-sm">Cash on Delivery</p>
               <p className="text-amber-700 text-xs mt-1">
-                Please keep exact change ready. Our delivery partner will collect ₹{orderData.totalAmount.toFixed(2)} at your doorstep.
+                Please keep exact change ready. Our delivery partner will collect ₹
+                {orderData.totalAmount.toFixed(2)} at your doorstep.
               </p>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
