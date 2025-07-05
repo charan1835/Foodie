@@ -23,7 +23,9 @@ export default function RootLayout({ children }) {
             <video
               autoPlay
               loop
+              playsInline
               muted
+              preload="auto"
               className="fixed top-0 left-0 w-full h-full object-cover -z-10"
               src="/videos/chiken-grill.mp4"
             />

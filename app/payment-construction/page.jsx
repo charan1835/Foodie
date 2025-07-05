@@ -324,14 +324,13 @@ export default function PaymentConstructionPage() {
 
         const waLink = generateWhatsAppMessage();
         toast("Redirecting to WhatsApp... ✅ Please make sure to hit *send*.");
-        setTimeout(() => {
-          window.open(waLink, "_blank");
-        }, 1000);
+        window.location.href = waLink;
+        
 
         sessionStorage.removeItem("orderData");
         setTimeout(() => {
           router.push("/payment-construction/thankyou");
-        }, 2000);
+        }, 3000);
       }
     } catch (err) {
       toast.error("Something went wrong!");
