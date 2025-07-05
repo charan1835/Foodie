@@ -168,7 +168,7 @@ export default function DisplayCart() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Shopping Cart</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Cart</h1>
           <p className="text-gray-600">
             {userCart.length} {userCart.length === 1 ? "item" : "items"} in your cart
           </p>
@@ -272,7 +272,6 @@ export default function DisplayCart() {
                             Apply
                           </button>
                         </div>
-
                         <button
                           onClick={() => setShowCouponInput(false)}
                           className="text-gray-500 text-sm hover:text-gray-700 transition-colors"
