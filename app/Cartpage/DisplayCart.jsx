@@ -90,6 +90,33 @@ export default function DisplayCart() {
 
   const totalAmount = subtotal + gstAmount + deliveryCharge - couponDiscount
 
+  // Redirect to payment page
+  const handleCheckout = async () => {
+    try {
+      // Calculate and pass data to payment page
+      const orderData = {
+        subtotal: subtotal,
+        gstAmount: gstAmount,
+        deliveryCharge: deliveryCharge,
+        couponDiscount: couponDiscount,
+        totalAmount: totalAmount,
+        appliedCoupon: appliedCoupon?.code || null,
+        itemCount: userCart.length,
+        userEmail: user.primaryEmailAddress.emailAddress
+      };
+
+      // Store order data in sessionStorage for payment page
+      sessionStorage.setItem('orderData', JSON.stringify(orderData));
+      
+      // Redirect to payment construction page
+      router.push("/payment-construction");
+
+    } catch (err) {
+      toast.error("Something went wrong!");
+      console.error("Checkout error", err);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 pt-20">
@@ -125,36 +152,9 @@ export default function DisplayCart() {
       </div>
     )
   }
-  //checkout
-  const handleCheckout = async () => {
-    try {
-      // Optional: Add a confirmation toast
-      toast.success("Payment simulation complete 💳");
-  
-     
-  
-      // 3. Redirect to thank-you page
-      setTimeout(() => {
-        router.push("/payment-construction/thankyou");
-    }, 1500);
-    } catch (err) {
-      toast.error("Something went wrong!");
-      console.error("Checkout error", err);
-    }
-     // 1. Delete all cart items for the user
-     for (let item of userCart) {
-        await GlobalApi.deleteCartItem(item.id);
-      }
-  
-      // 2. Clear local state
-      setUserCart([]);
-      setAppliedCoupon(null);
-  };
-  
-  
 
   return (
-    <div className="min-h-screen  pt-20">
+    <div className="min-h-screen pt-20">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -357,7 +357,7 @@ export default function DisplayCart() {
               {/* Checkout Button */}
               <div className="p-6 pt-0">
                 <button onClick={handleCheckout} className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl ">
-                  Proceed to Checkout
+                  Proceed to Payment
                 </button>
 
                 {/* Security Info */}

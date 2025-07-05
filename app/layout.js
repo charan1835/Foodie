@@ -8,21 +8,11 @@ import Header from "./_components/Header";
 import { Toaster } from "react-hot-toast";
 import { CartupdateContext } from "./_context/CartupdateContext";
 import { useState } from "react";
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SpeedInsights } from "@vercel/speed-insights/next";
 const inter = Inter({ subsets: ["latin"] });
-
-const bgVideos = [
-  "/videos/chiken-grill.mp4",
-  "/videos/cartoon.mp4",
-];
 
 export default function RootLayout({ children }) {
   const [updateCart, setUpdateCart] = useState(false);
-  const [bgVideoIndex, setBgVideoIndex] = useState(0);
-
-  const handleVideoEnd = () => {
-    setBgVideoIndex((prev) => (prev + 1) % bgVideos.length);
-  };
 
   return (
     <ClerkProvider>
@@ -35,8 +25,7 @@ export default function RootLayout({ children }) {
               loop
               muted
               className="fixed top-0 left-0 w-full h-full object-cover -z-10"
-              src={bgVideos[bgVideoIndex]}
-              onEnded={handleVideoEnd}
+              src="/videos/chiken-grill.mp4"
             />
             <div className="fixed inset-0 bg-black/40 z-0" />
             <Header />
@@ -44,6 +33,30 @@ export default function RootLayout({ children }) {
               {children}
             </main>
             <Toaster />
+
+            {/* WhatsApp Floating Button */}
+            <a
+              href="https://wa.me/918688605760?text=Hey%20Spartan%20I%20checked%20your%20site%20👀"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition duration-300"
+            >
+              {/* Placeholder WhatsApp SVG */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8 10h.01M12 14h.01M16 10h.01M9 16h6a2 2 0 002-2V7a2 2 0 00-2-2H9a2 2 0 00-2 2v7a2 2 0 002 2z"
+                />
+              </svg>
+            </a>
           </body>
         </html>
       </CartupdateContext.Provider>
