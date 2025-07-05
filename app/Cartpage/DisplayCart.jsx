@@ -93,8 +93,18 @@ export default function DisplayCart() {
   // Redirect to payment page
   const handleCheckout = async () => {
     try {
+      // Prepare items data for WhatsApp message
+      const items = userCart.map(item => ({
+        id: item.id,
+        name: item.productName,
+        price: item.price,
+        description: item.productDescription,
+        image: item.productimg
+      }));
+
       // Calculate and pass data to payment page
       const orderData = {
+        items: items, // ✅ Now includes actual cart items
         subtotal: subtotal,
         gstAmount: gstAmount,
         deliveryCharge: deliveryCharge,
