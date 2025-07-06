@@ -14,7 +14,6 @@ const CategoryList = [
   { slug: "pasta", name: "Pasta" },
   { slug: "chinese", name: "Chinese" },
   { slug: "indian", name: "Indian" },
-  // Add more categories as needed
 ]
 
 const Header = () => {
