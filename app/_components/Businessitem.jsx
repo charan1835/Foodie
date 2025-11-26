@@ -1,7 +1,7 @@
 "use client"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Star, MapPin, Clock, ArrowRight } from "lucide-react"
+import { Star, MapPin, ArrowRight } from "lucide-react"
 
 function BusinessItem({ business }) {
   const router = useRouter()
@@ -40,7 +40,7 @@ function BusinessItem({ business }) {
           <span className="text-sm font-semibold text-gray-800">4.5</span>
         </div>
 
-       
+
       </div>
 
       {/* Content */}
@@ -69,36 +69,8 @@ function BusinessItem({ business }) {
           </div>
         </div>
 
-        {/* Details */}
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2 text-sm">
-            <Clock size={14} className="text-gray-400" />
-            <span className={(() => {
-              const date = new Date()
-              const hour = date.getHours() % 12 || 12
-              const openTime = new Date(business.open_time)
-              const closeTime = new Date(business.close_time)
-              if (hour >= openTime.getHours() % 12 || 12 && hour < closeTime.getHours() % 12 || 12) {
-                return "text-green-600"
-              } else {
-                return "text-red-600"
-              }
-            })()}>
-              {(() => {
-                const date = new Date()
-                const hour = date.getHours() % 12 || 12
-                const openTime = new Date(business.open_time)
-                const closeTime = new Date(business.close_time)
-                if (hour >= openTime.getHours() % 12 || 12 && hour < closeTime.getHours() % 12 || 12) {
-                  return "Open Now"
-                } else {
-                  return "Closed"
-                }
-              })()}
-            </span>
-          </div>
-        </div>
-              
+
+
         {/* Footer */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
           <div className="flex items-center gap-2">

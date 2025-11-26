@@ -44,6 +44,28 @@ const getBusinessList = async (categorySlug) => {
   return result;
 };
 
+// Get ALL restaurants (no category filter)
+const getAllBusinessList = async () => {
+  const query = gql`
+    query GetAllRestaurants {
+      restaurants {
+        id
+        name
+        slug
+        workinghours
+        types
+        aboutUs
+        address
+        banner {
+          url
+        }
+      }
+    }
+  `;
+  const result = await request(MASTER_URL, query);
+  return result;
+};
+
 // Get full detail of a restaurant by slug
 const GetBusinessdetail = async (businessSlug) => {
   const query = gql`
@@ -149,7 +171,7 @@ const GetUserCart = async (email) => {
   return request(MASTER_URL, query, variables);
 };
 
-// 🔥 DELETE CART ITEM - This was missing!
+// 🔥 DELETE CART ITEM
 const deleteCartItem = async (id) => {
   const mutation = gql`
     mutation DeleteCartItem($id: ID!) {
@@ -165,12 +187,12 @@ const deleteCartItem = async (id) => {
   return request(MASTER_URL, mutation, variables);
 };
 
-// 🔥 Export All (Added deleteCartItem)
 export default {
   getCategory,
   getBusinessList,
+  getAllBusinessList,
   GetBusinessdetail,
   addToCart,
   GetUserCart,
-  deleteCartItem, // ← Added this line
+  deleteCartItem,
 };

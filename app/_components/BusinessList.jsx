@@ -15,15 +15,17 @@ function BusinessListContent() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     if (selectedCategory) {
-      setLoading(true);
       GlobalApi.getBusinessList(selectedCategory).then((res) => {
-        console.log("Fetched businesses:", res);
         setBusinessList(res.restaurants || []);
         setLoading(false);
       });
     } else {
-      setBusinessList([]);
+      GlobalApi.getAllBusinessList().then((res) => {
+        setBusinessList(res.restaurants || []);
+        setLoading(false);
+      });
     }
   }, [selectedCategory]);
 
@@ -35,7 +37,7 @@ function BusinessListContent() {
   return (
     <div className="px-4 py-6">
       <h2 className="text-2xl font-semibold mb-4">
-        {selectedCategory ? `Restaurants for ${selectedCategory}` : "Select a category"}
+        {selectedCategory ? `Restaurants for ${selectedCategory}` : "All Restaurants"}
       </h2>
       <h2 className="text-lg font-semibold mb-4 text-gray-600 animate-pulse hover:text-blue-600 transition duration-300">
         {businessList.length} Results Found
